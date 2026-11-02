@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Віртуальні приватні мережі (VPN) — вправа</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#eef1ec;--card:#fff;--ink:#18212b;--mut:#5d6874;--line:#d3dad1;--acc:#0f5c4d;--accbg:#e4f0ec;--ok:#1c7a46;--okbg:#e3f3ea;--bad:#b3362b;--badbg:#fbe7e4;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171a;--card:#182125;--ink:#e6ece8;--mut:#9aa8a6;--line:#2c3a3d;--acc:#5cc2a8;--accbg:#1a2d2b;--ok:#62cf8e;--okbg:#17301f;--bad:#ff8d80;--badbg:#3a1d1b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10171a;--card:#182125;--ink:#e6ece8;--mut:#9aa8a6;--line:#2c3a3d;--acc:#5cc2a8;--accbg:#1a2d2b;--ok:#62cf8e;--okbg:#17301f;--bad:#ff8d80;--badbg:#3a1d1b;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Onest,system-ui,"Segoe UI",Arial,sans-serif}
+#app{max-width:760px;margin:0 auto;padding:20px 16px 56px}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+h2{font-size:20px;margin:0 0 14px;line-height:1.3}
+.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.lead{color:var(--mut);margin:0 0 20px}
+label.f{display:block;font-weight:700;margin:18px 0 6px}
+input[type=text]{width:100%;font:inherit;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input[type=text]:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:12px 22px;background:var(--acc);color:var(--onacc,#fff);cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--onacc:#0b1412}}
+:root[data-theme="dark"]{--onacc:#0b1412}
+.btn.alt{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.bar{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-bottom:16px}
+.bar i{height:6px;border-radius:3px;background:var(--line)}
+.bar i.cur{background:var(--acc)}.bar i.ok{background:var(--ok)}.bar i.no{background:var(--bad)}
+.meta{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--mut);margin-bottom:12px}
+.tag{font-size:13px;color:var(--acc);background:var(--accbg);padding:2px 10px;border-radius:99px}
+.qt{font-size:19px;font-weight:700;margin:0 0 16px;line-height:1.4}
+.ctx{background:var(--bg);border-left:3px solid var(--acc);padding:10px 14px;margin:0 0 16px;border-radius:0 8px 8px 0;color:var(--mut)}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--acc);background:var(--accbg)}
+.opt input{margin-top:5px;accent-color:var(--acc)}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.row>b,.row>span{flex:1 1 240px}
+select{font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);max-width:100%}
+.row select{flex:1 1 260px}
+.cl{line-height:2.4;margin:0 0 6px}
+.cl select{margin:0 4px}
+.ord{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ord li{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px}
+.mv{display:flex;gap:4px}
+.mini{font:inherit;width:34px;height:34px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.segb,.chip,.gap,.ch{font:inherit;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+.segb.on,.ch.on{background:var(--acc);border-color:var(--acc);color:var(--onacc,#fff)}
+.gap{min-width:90px;border-style:dashed;color:var(--mut);margin:0 3px}.gap.full{border-style:solid;color:var(--ink);background:var(--accbg)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.chip.used{opacity:.35}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.dg{grid-template-columns:1fr}}
+.dgb{font:inherit;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:10px;cursor:pointer;text-align:left}
+.dgb.on{border-color:var(--acc);background:var(--accbg)}
+.dgb svg{width:100%;height:auto;display:block;margin-top:6px}
+.sl{width:100%;accent-color:var(--acc)}
+.big{font-size:34px;font-weight:700;color:var(--acc)}
+.scroll{overflow-x:auto}
+.mx{border-collapse:collapse;width:100%;min-width:420px}.mx th,.mx td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:center}.mx td:first-child{text-align:left}
+.tiles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.tiles span{width:38px;height:42px;display:grid;place-items:center;background:var(--accbg);border-radius:8px;font-size:18px}
+.fb{margin-top:18px;padding:14px 16px;border-radius:10px;white-space:pre-line}
+.fb.ok{background:var(--okbg);color:var(--ok)}.fb.no{background:var(--badbg);color:var(--bad)}
+.fb p{margin:6px 0 0;color:var(--ink)}
+.act{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.res{display:grid;gap:12px;grid-template-columns:repeat(3,1fr);margin:18px 0}
+@media(max-width:560px){.res{grid-template-columns:1fr}}
+.res div{background:var(--accbg);border-radius:12px;padding:14px}.res small{color:var(--mut);display:block}
+.rev{margin-top:20px;display:grid;gap:8px}
+.rev div{display:flex;gap:10px;font-size:14px;padding:8px 12px;border-radius:8px;background:var(--bg)}
+.rev b.ok{color:var(--ok)}.rev b.no{color:var(--bad)}
+#msg{margin-top:12px;color:var(--mut);font-size:14px}
+/* звіт для PDF */
+#report{position:absolute;left:-10000px;top:0;width:794px;background:#fff;color:#18212b;font:14px/1.5 Onest,Arial,sans-serif}
+#report .blk{padding:0 36px;background:#fff}
+#report .hd{padding:30px 36px 14px;border-bottom:3px solid #0f5c4d}
+#report h3{margin:0 0 4px;font-size:22px;color:#0f5c4d}
+#report .sm{padding:16px 36px;display:flex;gap:14px}
+#report .sm div{flex:1;border:1.5px solid #cfd8d3;border-radius:10px;padding:10px 14px}
+#report .sm b{font-size:24px;color:#0f5c4d;display:block}
+#report .q{border:1.5px solid #cfd8d3;border-radius:10px;padding:12px 16px;margin:6px 36px;border-left:6px solid #1c7a46}
+#report .q.no{border-left-color:#b3362b}
+#report .q h4{margin:0 0 6px;font-size:14px}
+#report .q .a{white-space:pre-line;margin:4px 0;font-size:13px}
+#report .st{font-weight:700}.ok{color:#1c7a46}.no{color:#b3362b}
+#report .sig{display:flex;gap:40px;padding:26px 36px 16px}#report .sig div{flex:1;border-top:1px solid #18212b;padding-top:4px;font-size:12px;color:#5d6874}
+@media print{#app{display:none}#report{position:static;width:auto}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div id="report" aria-hidden="true"></div>
+<script>
+const h=(tag,attrs,...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs||{})){if(k==='class')e.className=v;else if(k.startsWith('on'))e[k]=v;else e.setAttribute(k,v)}kids.flat().forEach(k=>e.append(k&&k.nodeType?k:document.createTextNode(k)));return e};
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const norm=s=>(s||'').toLowerCase().replace(/[^а-яіїєґa-z0-9]/g,'');
+const NO='— без відповіді —';
+
+/* ---------- конструктори завдань ---------- */
+function choice(box,o,ans,multi,keep){const items=keep?o:shuf(o);const w=h('div',{class:'opts'});items.forEach(t=>w.append(h('label',{class:'opt'},h('input',{type:multi?'checkbox':'radio',name:'c'}),h('span',{},t))));box.append(w);
+ return{get(){const s=[...w.querySelectorAll('input')].map((i,k)=>i.checked?items[k]:null).filter(Boolean);return{user:s.join('; ')||NO,ok:s.length===ans.length&&ans.every(a=>s.includes(a))}}}}
+function text(box,acc,ph){const i=h('input',{type:'text',placeholder:ph||'Ваша відповідь',autocomplete:'off'});box.append(i);return{get(){return{user:i.value.trim()||NO,ok:acc.map(norm).includes(norm(i.value))}}}}
+function match(box,pairs){pairs=shuf(pairs);const defs=shuf(pairs.map(p=>p[1]));const ss=pairs.map(([t])=>{const s=h('select',{},h('option',{value:''},'— оберіть —'),defs.map(d=>h('option',{value:d},d)));box.append(h('div',{class:'row'},h('b',{},t),s));return s});
+ return{get(){return{user:ss.map((s,i)=>pairs[i][0]+' → '+(s.value||'—')).join('\n'),ok:ss.every((s,i)=>s.value===pairs[i][1])}}}}
+function order(box,steps){let arr=shuf(steps);if(arr.join()===steps.join())arr.reverse();const ul=h('ol',{class:'ord'});box.append(ul);
+ const mv=(i,d)=>{const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];draw()};
+ const draw=()=>{ul.innerHTML='';arr.forEach((s,i)=>ul.append(h('li',{},h('span',{},(i+1)+'. '+s),h('span',{class:'mv'},h('button',{class:'mini',type:'button','aria-label':'Вище',onclick:()=>mv(i,-1)},'↑'),h('button',{class:'mini',type:'button','aria-label':'Нижче',onclick:()=>mv(i,1)},'↓')))))};draw();
+ return{get(){return{user:arr.map((s,i)=>(i+1)+'. '+s).join('\n'),ok:arr.join('|')===steps.join('|')}}}}
+function cloze(box,parts){const p=h('p',{class:'cl'});const ss=[];parts.forEach(x=>{if(typeof x==='string')p.append(x);else{const s=h('select',{},h('option',{value:''},'…'),shuf(x.o).map(o=>h('option',{value:o},o)));ss.push([s,x.a]);p.append(s)}});box.append(p);
+ return{get(){return{user:ss.map(([s])=>s.value||'—').join(' / '),ok:ss.every(([s,a])=>s.value===a)}}}}
+function sort(box,items,cats){items=shuf(items);const vals=items.map(()=>'');items.forEach(([t],i)=>{const g=h('div',{class:'seg'});const bs=cats.map(k=>h('button',{type:'button',class:'segb',onclick:e=>{vals[i]=k;bs.forEach(x=>x.classList.toggle('on',x.textContent===k))}},k));g.append(...bs);box.append(h('div',{class:'row'},h('span',{},t),g))});
+ return{get(){return{user:items.map((it,i)=>it[0]+' → '+(vals[i]||'—')).join('\n'),ok:items.every((it,i)=>vals[i]===it[1])}}}}
+function diagram(box,want){const bx=(x,y,w,t,hot)=>`<rect x="${x}" y="${y}" width="${w}" height="30" rx="6" fill="none" stroke="currentColor" ${hot?'stroke-width="2.5"':''}/><text x="${x+w/2}" y="${y+19}" text-anchor="middle" font-size="11" fill="currentColor">${t}</text>`;
+ const ar=(x1,y1,x2,y2,d)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="1.5" ${d?'stroke-dasharray="4 3"':''} marker-end="url(#a)"/>`;
+ const defs='<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="currentColor"/></marker></defs>';
+ const A=`<svg viewBox="0 0 300 70">${defs}${bx(6,20,64,'Пристрій')}<rect x="92" y="24" width="116" height="22" rx="11" fill="currentColor" fill-opacity=".15" stroke="currentColor" stroke-width="2.5"/><text x="150" y="39" text-anchor="middle" font-size="10" fill="currentColor">VPN-тунель (шифр.)</text>${bx(230,20,64,'Мережа')}${ar(70,35,90,35)}${ar(208,35,228,35)}</svg>`;
+ const B=`<svg viewBox="0 0 300 100">${defs}${bx(6,8,64,'Пристрій')}${bx(230,8,64,'Мережа')}${ar(70,23,228,23,1)}${bx(112,62,76,'Зловмисник',1)}${ar(150,62,150,26)}</svg>`;
+ let v='';const bs=[['Схема A',A],['Схема B',B]].map(([n,s])=>{const b=h('button',{type:'button',class:'dgb',onclick:()=>{v=n;bs.forEach(x=>x.classList.toggle('on',x.dataset.n===v))}});b.dataset.n=n;b.innerHTML='<b>'+n+'</b>'+s;return b});
+ box.append(h('div',{class:'dg'},bs));return{get(){return{user:v||NO,ok:v===want}}}}
+function slider(box,min,max,ans){const o=h('span',{class:'big'},String(min));const s=h('input',{type:'range',class:'sl',min,max,value:min,step:1});s.oninput=()=>o.textContent=s.value;box.append(o,s);return{get(){return{user:s.value,ok:+s.value===ans}}}}
+function chunks(box,list,bad){let v=-1;const w=h('div',{class:'seg'});const bs=list.map((t,i)=>h('button',{type:'button',class:'ch segb',onclick:()=>{v=i;bs.forEach((b,k)=>b.classList.toggle('on',k===i))}},t));w.append(...bs);box.append(w);return{get(){return{user:v<0?NO:'«'+list[v]+'»',ok:v===bad}}}}
+function bank(box,parts,chips,ans){const vals=ans.map(()=>null);const p=h('p',{class:'cl'});const gs=[];let gi=0;parts.forEach(x=>{if(x===0){const k=gi++;const g=h('button',{type:'button',class:'gap',onclick:()=>{vals[k]=null;draw()}});gs.push(g);p.append(g)}else p.append(x)});
+ const cw=h('div',{class:'chips'});const cs=shuf(chips).map(t=>{const b=h('button',{type:'button',class:'chip',onclick:()=>{const k=vals.indexOf(null);if(k<0)return;vals[k]=t;draw()}},t);cw.append(b);return b});
+ const draw=()=>{gs.forEach((g,k)=>{g.textContent=vals[k]||'______';g.classList.toggle('full',!!vals[k])});cs.forEach(b=>b.classList.toggle('used',vals.includes(b.textContent)))};draw();box.append(p,cw);
+ return{get(){return{user:vals.map(v=>v||'—').join(' / '),ok:vals.every((v,k)=>v===ans[k])}}}}
+function matrix(box,cols,rows){rows=shuf(rows);const t=h('table',{class:'mx'});t.append(h('tr',{},h('th'),cols.map(c=>h('th',{},c))));const nm=rows.map((r,i)=>'m'+i);
+ rows.forEach((r,i)=>t.append(h('tr',{},h('td',{},r[0]),cols.map(c=>h('td',{},h('input',{type:'radio',name:nm[i],value:c,'aria-label':c,style:'accent-color:var(--acc)'}))))));box.append(h('div',{class:'scroll'},t));
+ const val=n=>(t.querySelector('input[name="'+n+'"]:checked')||{}).value;return{get(){return{user:rows.map((r,i)=>r[0]+' → '+(val(nm[i])||'—')).join('\n'),ok:rows.every((r,i)=>val(nm[i])===r[1])}}}}
+function unscramble(box,word,hint){let l=[...word];while(l.join('')===word)l=shuf(l);box.append(h('p',{class:'ctx'},'Підказка: '+hint),h('div',{class:'tiles'},l.map(c=>h('span',{class:'mono'},c))));return text(box,[word],'Складіть слово')}
+function rows(box,list){list=shuf(list);const ss=list.map(r=>{const s=h('select',{},h('option',{value:''},'— оберіть дію —'),shuf(r.o).map(o=>h('option',{value:o},o)));box.append(h('div',{class:'row'},h('b',{},r.l),s));return s});
+ return{get(){return{user:ss.map((s,i)=>list[i].l+' → '+(s.value||'—')).join('\n'),ok:ss.every((s,i)=>s.value===list[i].a)}}}}
+
+/* ---------- 15 питань ---------- */
+let QS=[];
+const cm=a=>a.map(p=>p[0]+' → '+p[1]).join('\n'),co=a=>a.map((s,i)=>(i+1)+'. '+s).join('\n'),cr=a=>a.map(r=>r.l+' → '+r.a).join('\n');
+const S=(q,o,e)=>({t:'Один правильний варіант',q,b:b=>choice(b,o,[o[0]]),c:o[0],e});
+const M=(q,o,k,e)=>({t:'Кілька правильних варіантів',q,b:b=>choice(b,o,o.slice(0,k),true),c:o.slice(0,k).join('; '),e});
+const TF=(q,ok,e)=>({t:'Правда / неправда',q,b:b=>choice(b,['Правда','Неправда'],[ok?'Правда':'Неправда'],false,true),c:ok?'Правда':'Неправда',e});
+const TX=(q,acc,e)=>({t:'Коротка відповідь',q,b:b=>text(b,acc,'Введіть слово'),c:acc[0],e});
+const MT=(q,p,e)=>({t:'Встановлення відповідності',q,b:b=>match(b,p),c:cm(p),e});
+const OR=(q,s,e)=>({t:'Послідовність дій',q,b:b=>order(b,s),c:co(s),e});
+const CL=(q,parts,e)=>({t:'Заповнення пропусків (випадні списки)',q,b:b=>cloze(b,parts),c:parts.filter(x=>typeof x!=='string').map(x=>x.a).join(' / '),e});
+const SO=(q,it,cats,e)=>({t:'Класифікація',q,b:b=>sort(b,it,cats),c:cm(it),e});
+const DG=(q,w,e)=>({t:'Вибір за схемою',q,b:b=>diagram(b,w),c:w,e});
+const SL=(q,a,e)=>({t:'Шкала (повзунок)',q,b:b=>slider(b,0,6,a),c:String(a),e});
+const CH=(q,l,bad,e)=>({t:'Пошук помилки в тексті',q,b:b=>chunks(b,l,bad),c:'«'+l[bad]+'»',e});
+const BK=(q,p,ch,a,e)=>({t:'Банк слів',q,b:b=>bank(b,p,ch,a),c:a.join(' / '),e});
+const MX=(q,cols,r,e)=>({t:'Матриця «ознака — тип»',q,b:b=>matrix(b,cols,r),c:cm(r),e});
+const UN=(q,w,hint,e)=>({t:'Анаграма',q,b:b=>unscramble(b,w,hint),c:w,e});
+const CS=(q,l,e)=>({t:'Ситуаційна задача',q,b:b=>rows(b,l),c:cr(l),e});
+const DEF='Логічна мережа, створена поверх інших мереж на базі загальнодоступних або віртуальних каналів (Інтернету)';
+const QA=[
+S('Що таке VPN?',[DEF,'Фізична мережа з виділених кабелів, прокладених між філіями','Програма для блокування реклами в браузері','Модуль, що відстежує та фільтрує спам'],'VPN — це логічна мережа поверх інших мереж, зокрема Інтернету.'),
+M('Які переваги використання VPN наведено в матеріалі? Оберіть усі правильні відповіді.',['Захищені канали зв’язку за ціною доступу в Інтернет, що в кілька разів дешевше виділених ліній','Не потрібно змінювати топологію мереж, переписувати програми й навчати користувачів','Забезпечується масштабування: VPN не створює проблем росту','Надійність вища, ніж у виділених ліній і мереж Frame relay'],3,'Недолік VPN: вони менш надійні за виділені лінії та Frame relay, але дешевші.'),
+TF('Твердження: «VPN дає змогу об’єднати кілька географічно віддалених мереж організації в єдину мережу, використовуючи для зв’язку непідконтрольні канали».',true,'Саме так: філії зв’язуються через загальнодоступні мережі.'),
+TX('Віртуальні канали зв’язку, які VPN створює через загальнодоступні мережі, називають VPN-______ (одне слово).',['тунелі','тунель','тунелями'],'Трафік у таких тунелях шифрується.'),
+MT('Зіставте поняття з їхнім описом.',[['Захищені VPN','Створюють надійну підмережу на основі ненадійної мережі, зазвичай Інтернету'],['Довірчі VPN','Використовують, коли середовище передавання даних можна вважати надійним'],['OpenVPN','Програмне забезпечення, що використовує протокол SSL'],['MPLS','Приклад довірчого VPN-рішення']],'Захищені VPN — найпоширеніший варіант; безпека в довірчих неактуальна.'),
+OR('Розташуйте етапи передавання даних через VPN у правильному порядку (стрілками ↑ ↓).',['Пристрій формує дані для передавання через Інтернет','Дані шифруються й надсилаються віртуальним каналом — VPN-тунелем','Зловмисник може перехопити пакети, але не має ключа розшифровки','Одержувач розшифровує дані за допомогою ключа'],'Без ключа перехоплені зашифровані пакети марні.'),
+CL('Оберіть потрібні слова.',['Технологія VPN створює ',{o:['віртуальні','фізичні','паперові'],a:'віртуальні'},' канали зв’язку через ',{o:['загальнодоступні','виділені','локальні'],a:'загальнодоступні'},' мережі, так звані «VPN-тунелі». Трафік у тунелях, що зв’язують віддалені філії, ',{o:['шифрується','видаляється','дублюється'],a:'шифрується'},'.'],'Шифрування робить канал закритим для сторонніх.'),
+SO('До якого типу VPN (за типом використовуваного середовища) належить кожний приклад?',[['Ipsec','Захищені'],['MPLS','Довірчі'],['PPTP','Захищені'],['L2TP','Довірчі'],['OpenVPN (протокол SSL)','Захищені']],['Захищені','Довірчі'],'Захищені: Ipsec, SSL, PPTP. Довірчі: MPLS і L2TP.'),
+DG('На якій схемі дані передаються через VPN-тунель із шифруванням?','Схема A','На схемі A між пристроєм і мережею — закритий зашифрований тунель.'),
+SL('Скільки способів реалізації VPN наведено в матеріалі (програмно-апаратне забезпечення, програмне рішення тощо)? Встановіть число.',3,'Це спеціальне програмно-апаратне забезпечення, програмне рішення та інтегроване рішення.'),
+CH('Натисніть на фрагмент, у якому допущено помилку.',['VPN — це логічна мережа,','створена поверх інших мереж','на базі загальнодоступних або віртуальних каналів,','що завжди повністю підконтрольні організації.'],3,'VPN використовує непідконтрольні канали, тому дані й шифрують.'),
+BK('Натискайте слова з банку, щоб заповнити пропуски по порядку.',['Зловмисник, що перехопив ',0,' інформацію, не зможе її переглянути, бо не має ',0,' для розшифровки.'],['шифровану','ключа','паспорта','програми'],['шифровану','ключа'],'Ключ розшифровки є лише в учасників VPN.'),
+MX('Для кожної ознаки оберіть тип VPN, до якого вона стосується.',['Захищені VPN','Довірчі VPN'],[['Створюють надійну підмережу на основі ненадійної мережі','Захищені VPN'],['Середовище передавання даних вважають надійним','Довірчі VPN'],['Приклад: Ipsec','Захищені VPN'],['Приклад: L2TP','Довірчі VPN']],'Захищені захищають дані, довірчі лише виділяють віртуальну підмережу.'),
+UN('Складіть термін із літер.','ТУНЕЛЬ','віртуальний канал зв’язку в VPN через загальнодоступні мережі','VPN-тунелі зв’язують віддалені філії.'),
+CS('Ситуація. Компанія має філії у двох містах і хоче об’єднати їхні мережі в єдину, не прокладаючи власних виділених ліній. Оберіть правильні рішення.',[{l:'Що доцільно застосувати',o:['VPN через Інтернет','Обмін без шифрування через відкритий канал','Окремий фізичний кабель між містами'],a:'VPN через Інтернет'},{l:'Що відбуватиметься з трафіком у тунелі',o:['Шифруватиметься','Передаватиметься відкрито','Зберігатиметься на сервері назавжди'],a:'Шифруватиметься'}],'VPN дешевший за виділені лінії й захищає трафік шифруванням.')
+];
+const QB=[
+S('Як у VPN реалізується безпека передавання пакетів через загальнодоступні мережі?',['За допомогою шифрування, внаслідок чого створюється закритий для сторонніх канал обміну інформацією','Фізичним відключенням сервера від Інтернету','Лише приховуванням адреси сайту в рядку браузера','Видаленням усіх пакетів, що містять текст'],'Шифрування робить канал закритим для сторонніх.'),
+M('Які твердження про VPN правильні? Оберіть усі правильні відповіді.',['Можна використовувати модулі криптографії будь-яких виробників відповідно до національних стандартів','Відкриті інтерфейси дають змогу інтегрувати мережу з іншими програмними продуктами та бізнес-додатками','VPN завжди надійніший за виділені лінії','VPN можна створити лише за допомогою спеціального апаратного забезпечення'],2,'VPN менш надійні за виділені лінії, а реалізувати їх можна й програмно.'),
+TF('Твердження: «У порівнянні з виділеними лініями та мережами Frame relay віртуальні приватні мережі більш надійні, але дорожчі».',false,'Навпаки: VPN менш надійні, проте дешевші.'),
+TX('Зловмисник, що перехопив шифровану інформацію, не зможе її переглянути, бо не має ключа для ______ (одне слово).',['розшифровки','розшифрування','розшифровка'],'Ключ потрібен, щоб розшифрувати дані.'),
+MT('Зіставте поняття з їхнім описом.',[['Ipsec, SSL, PPTP','Приклади захищених протоколів VPN'],['MPLS і L2TP','Приклади довірчих VPN-рішень'],['VPN-тунель','Віртуальний канал зв’язку через загальнодоступну мережу'],['Виділені лінії','Надійніші за VPN, але значно дорожчі']],'Типи VPN розрізняють за середовищем передавання даних.'),
+OR('Розташуйте кроки додавання VPN-розширення в Google Chrome у правильному порядку (стрілками ↑ ↓).',['Відкрити Налаштування та керування Chrome → Інші інструменти → Розширення → Інші розширення','У полі «Пошук в магазині» ввести назву VPN-розширення (наприклад, Touch VPN)','Обрати потрібне розширення зі списку результатів','Натиснути кнопку «Додати в Chrome»'],'Приклади розширень: ZenMate VPN, Touch VPN.'),
+CL('Оберіть потрібні слова.',['За способом реалізації VPN буває у вигляді спеціального ',{o:['програмно-апаратного','паперового','звукового'],a:'програмно-апаратного'},' забезпечення, у вигляді ',{o:['програмного','механічного','хімічного'],a:'програмного'},' рішення або як ',{o:['інтегроване','випадкове','тимчасове'],a:'інтегроване'},' рішення.'],'Це три способи реалізації VPN.'),
+SO('Визначте, чи є це перевагою, чи недоліком VPN.',[['Захищені канали за ціною доступу в Інтернет','Перевага'],['Менша надійність порівняно з виділеними лініями','Недолік'],['Масштабування без проблем росту','Перевага'],['Не потрібно навчати користувачів','Перевага'],['Менша надійність порівняно з Frame relay','Недолік']],['Перевага','Недолік'],'Єдиний недолік у матеріалі — менша надійність, але ціна нижча.'),
+DG('На якій схемі дані можуть бути перехоплені й прочитані зловмисником (VPN не застосовано)?','Схема B','На схемі B канал відкритий, тож зловмисник бачить трафік.'),
+SL('На скільки типів поділяють VPN за типом використовуваного середовища? Встановіть число.',2,'Це захищені та довірчі VPN.'),
+CH('Натисніть на фрагмент, у якому допущено помилку.',['Захищені VPN — найпоширеніший варіант,','з його допомогою створюють надійну підмережу','на основі ненадійної мережі,','а питання безпеки в ньому неактуальні.'],3,'Питання безпеки неактуальні в довірчих VPN, а не в захищених.'),
+BK('Натискайте слова з банку, щоб заповнити пропуски по порядку.',['У довірчих VPN питання ',0,' стають неактуальними, бо середовище передавання даних вважають ',0,'.'],['безпеки','швидкості','надійним','ненадійним'],['безпеки','надійним'],'Довірчі VPN лише створюють віртуальну підмережу.'),
+MX('Для кожної ознаки оберіть тип VPN, до якого вона стосується.',['Захищені VPN','Довірчі VPN'],[['Приклад: MPLS','Довірчі VPN'],['Приклад: PPTP','Захищені VPN'],['Найпоширеніший варіант VPN','Захищені VPN']],'MPLS і L2TP — довірчі; Ipsec, SSL, PPTP — захищені.'),
+UN('Складіть термін із літер.','ШИФРУВАННЯ','перетворення даних, завдяки якому створюється закритий для сторонніх канал обміну інформацією','Трафік у VPN-тунелях шифрується.'),
+CS('Ситуація. Учень у кафе підключається до відкритої мережі й хоче безпечно передати особисті дані. Оберіть правильні рішення.',[{l:'Що допоможе створити закритий канал',o:['VPN (розширення чи застосунок)','Блокувальник реклами','Антиспам-модуль'],a:'VPN (розширення чи застосунок)'},{l:'Чому зловмисник не прочитає перехоплені пакети',o:['Не має ключа для розшифровки','Не може підключитися до Wi-Fi','Пакети передаються лише вночі'],a:'Не має ключа для розшифровки'}],'Шифрований канал захищає дані навіть у ненадійній мережі.')
+];
+
+/* ---------- стан і екрани ---------- */
+const app=document.getElementById('app');
+let name='',idx=0,res=[],cur=null;
+const bar=()=>h('div',{class:'bar'},QS.map((_,i)=>h('i',{class:i<res.length?(res[i].ok?'ok':'no'):i===idx?'cur':''})));
+
+function start(){
+ idx=0;res=[];app.innerHTML='';QS=shuf(QA.map((a,i)=>Math.random()<.5?a:QB[i]));
+ const inp=h('input',{type:'text',id:'nm',placeholder:'Наприклад: Шевченко Тарас',autocomplete:'name'});
+ const go=h('button',{class:'btn',type:'button',onclick:()=>{const v=inp.value.trim();if(v.length<3||!/\s/.test(v)){inp.focus();inp.style.borderColor='var(--bad)';return}name=v;question()}},'Почати вправу');
+ inp.onkeydown=e=>{if(e.key==='Enter')go.click()};
+ app.append(h('h1',{},'VPN: захищений тунель'),
+  h('p',{class:'lead'},'Інформатика, 11 клас. Тема: «Віртуальні приватні мережі (VPN)» (розділ 3, § 14). 15 завдань різних типів; після кожної відповіді ви побачите результат і пояснення. Наприкінці буде сформовано PDF-звіт, який потрібно здати вчителю.'),
+  h('div',{class:'card'},h('label',{class:'f',for:'nm'},'Прізвище та ім’я учня'),inp,h('div',{class:'act'},go)));
+}
+
+function question(){
+ const q=QS[idx];app.innerHTML='';
+ const box=h('div');cur=q.b(box);
+ const fb=h('div');const chk=h('button',{class:'btn',type:'button'},'Перевірити');
+ chk.onclick=()=>{const r=cur.get();res.push({t:q.t,q:q.q,user:r.user,c:q.c,ok:r.ok,e:q.e});
+  box.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);chk.remove();
+  fb.className='fb '+(r.ok?'ok':'no');fb.append(h('b',{},r.ok?'✓ Правильно':'✕ Неправильно'));
+  if(!r.ok)fb.append(h('p',{},'Правильна відповідь:\n'+q.c));fb.append(h('p',{},q.e));
+  const nx=h('button',{class:'btn',type:'button',onclick:()=>{idx++;idx<QS.length?question():finish()}},idx<QS.length-1?'Далі':'Завершити');
+  act.append(nx);nx.focus();document.querySelector('.bar').replaceWith(bar())};
+ const act=h('div',{class:'act'},chk);
+ app.append(bar(),h('div',{class:'card'},h('div',{class:'meta'},h('span',{},'Питання '+(idx+1)+' із '+QS.length),h('span',{class:'tag'},q.t)),h('p',{class:'qt'},q.q),box,fb,act));
+ window.scrollTo(0,0);
+}
+
+const stats=()=>{const n=res.filter(r=>r.ok).length;const pct=Math.round(n/QS.length*100);let pts=Math.round(pct*11/100);if(pct>0&&pts<1)pts=1;return{n,pct,pts}};
+const verdict=p=>p>=90?'відмінно':p>=75?'добре':p>=55?'задовільно':p>=30?'потрібно повторити матеріал':'потрібне повторне опрацювання теми';
+
+function finish(){
+ const s=stats();app.innerHTML='';
+ const msg=h('div',{id:'msg'});
+ const pdfBtn=h('button',{class:'btn',type:'button',onclick:()=>savePdf(pdfBtn,msg)},'Зберегти PDF для вчителя');
+ app.append(bar(),h('div',{class:'card'},h('h2',{},name),h('p',{class:'lead'},'Результат: '+verdict(s.pct)+'.'),
+  h('div',{class:'res'},h('div',{},h('small',{},'Правильних відповідей'),h('span',{class:'big'},s.n+' / '+QS.length)),h('div',{},h('small',{},'Результат у відсотках'),h('span',{class:'big'},s.pct+'%')),h('div',{},h('small',{},'Оцінка за 11-бальною шкалою'),h('span',{class:'big'},String(s.pts)))),
+  h('div',{class:'act'},pdfBtn,h('button',{class:'btn alt',type:'button',onclick:()=>window.print()},'Друк'),h('button',{class:'btn alt',type:'button',onclick:start},'Пройти знову')),msg,
+  h('div',{class:'rev'},res.map((r,i)=>h('div',{},h('b',{class:r.ok?'ok':'no'},r.ok?'✓':'✕'),h('span',{},(i+1)+'. '+r.t))))));
+ buildReport();window.scrollTo(0,0);
+}
+
+function buildReport(){
+ const s=stats(),R=document.getElementById('report');R.innerHTML='';
+ const d=new Date().toLocaleDateString('uk-UA',{day:'2-digit',month:'long',year:'numeric'});
+ const blocks=[];const add=el=>{R.append(el);blocks.push(el)};
+ add(h('div',{class:'hd'},h('h3',{},'Звіт про виконання інтерактивної вправи'),h('div',{},'Інформатика, 11 клас · Тема: «Віртуальні приватні мережі (VPN)» (розділ 3, § 14)'),h('div',{style:'margin-top:10px;font-size:18px'},h('b',{},'Учень: '),name),h('div',{style:'color:#5d6874'},'Дата: '+d)));
+ add(h('div',{class:'sm'},h('div',{},'Правильних відповідей',h('b',{},s.n+' з '+QS.length)),h('div',{},'Результат',h('b',{},s.pct+'%')),h('div',{},'Оцінка (11-бальна шкала)',h('b',{},s.pts+' б.'))));
+ add(h('div',{class:'blk',style:'font-size:12px;color:#5d6874;padding-bottom:8px'},'Шкала: кожна правильна відповідь — 1 бал із 15; оцінка = відсоток × 11 / 100, округлення до цілого. Загальний висновок: '+verdict(s.pct)+'.'));
+ res.forEach((r,i)=>add(h('div',{class:'q '+(r.ok?'':'no')},h('h4',{},(i+1)+'. ['+r.t+'] '+r.q),h('div',{class:'a'},h('b',{},'Відповідь учня: '),'\n'+r.user),h('div',{class:'a'},h('span',{class:'st '+(r.ok?'ok':'no')},r.ok?'✓ Правильно':'✕ Неправильно')),r.ok?'':h('div',{class:'a'},h('b',{},'Правильна відповідь: '),'\n'+r.c))));
+ add(h('div',{class:'sig'},h('div',{},'Підпис учня'),h('div',{},'Оцінка вчителя / підпис')));
+ R._blocks=blocks;
+}
+
+async function savePdf(btn,msg){
+ btn.disabled=true;msg.textContent='Формую PDF…';
+ try{
+  const R=document.getElementById('report');const {jsPDF}=window.jspdf;const pdf=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,H=297,M=10;let y=M;
+  for(const el of R._blocks){
+   const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff'});
+   const w=W-2*M,hh=cv.height*w/cv.width;
+   if(y+hh>H-M&&y>M){pdf.addPage();y=M}
+   pdf.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',M,y,w,hh);y+=hh+1;
+  }
+  const n=pdf.getNumberOfPages();for(let i=1;i<=n;i++){pdf.setPage(i);pdf.setFontSize(8);pdf.setTextColor(120);pdf.text(i+' / '+n,W-M,H-4,{align:'right'})}
+  const blob=pdf.output('blob');const fn='VPN_'+name.replace(/\s+/g,'_').replace(/[\\\/:*?"<>|]/g,'')+'.pdf';
+  let dl=null;try{dl=await window.claude.use('downloads')}catch(e){}
+  if(dl){try{await dl.save({filename:fn,data:blob});msg.textContent='PDF збережено. Надішліть або віддайте його вчителю.'}catch(e){msg.textContent=e&&e.code==='declined'?'Збереження скасовано. Спробуйте ще раз.':'Не вдалося зберегти файл. Скористайтеся кнопкою «Друк» і оберіть «Зберегти як PDF».'}}
+  else msg.textContent='Прямe збереження недоступне. Натисніть «Друк» і оберіть «Зберегти як PDF».';
+ }catch(e){msg.textContent='Помилка формування PDF. Скористайтеся кнопкою «Друк» і оберіть «Зберегти як PDF».'}
+ btn.disabled=false;
+}
+start();
+</script>
+</body>
+</html>
